@@ -1,0 +1,718 @@
+<html>
+<head>
+    <title>Oculus Rift</title>
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'/>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1,IE=edge"/>
+    <script type="text/javascript" src="http://www.x3dom.org/download/dev/x3dom.js"></script>
+    <link rel='stylesheet' type='text/css' href='http://www.x3dom.org/download/dev/x3dom.css'>
+    <script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
+    <style>
+
+        #enterVR {
+            background: rgba(0, 0, 0, .35) url("icon-goggles-white.svg") 50% 50% no-repeat;
+            background-size: 70% 70%;
+            color: #fff;
+            height: 50px;
+            width: 60px;
+            border: none;
+            background-color: rgba(120, 120, 120, .35);
+            padding: 1px 6px;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        #enterVR:hover {
+            background-color: rgba(120, 120, 120, .65);
+        }
+
+        .goggles {
+            height: 30px;
+            text-align: center;
+            color: buttontext;
+        }
+
+    </style>
+</head>
+<body style='width:100%; height:100%; border:0; margin:0; padding:0;'>
+<!--Scene as RenderedTexture-->
+<x3d id='x3dElement' showStat='false' showLog='false'
+     style='width:100%; height:100%; border:0; margin:0; padding:0;'>
+    <scene id='scene'>
+        <Environment frustumCulling="false"></Environment>
+        <worldInfo info='"Created using RenderPark (http://www.cs.kuleuven.ac.be/cwis/research/graphics/RENDERPARK/)"'
+                   title='Some nice model'></worldInfo>
+        <navigationInfo headlight='true' type='"NONE" "NONE"'></navigationInfo>
+        <viewpoint id='vpp' def='vp' description='ViewPoint 1' centerofrotation='3.4625 1.73998 -5.55'
+                   orientation='0 1 0 2.99229' position='4.17102 30.00905 -6.97228'
+                   znear="0.001" zfar="1000"></viewpoint>
+        <viewpoint def='AOPT_CAM' centerofrotation='3.4625 1.73998 -5.55'
+                   position='3.4625 30.73998 8.69028'></viewpoint>
+        <background DEF='bgnd' skyColor="0.5 0.5 0.5"></background>
+        <group id='root' render='false'>
+            <group id="subRoot" DEF='theScene'>
+
+
+                <transform id="handtrafo1" DEF='handtrafo1' translation="4.17102 30.00905 -6.97228">
+                    <transform id="handtrafo" translation="0.1 -0.3 -0.5">
+                        <shape>
+                            <appearance>
+                                <material diffuseColor="0.5 0.5 0.5"></material>
+                            </appearance>
+                            <box size="10 10 10"></box>
+                        </shape>
+                        <transform id="hand" scale="0.0015 0.0015 0.0015">
+                            <transform>
+                                <transform>
+                                    <transform>
+                                        <transform id="xxxx" scale="40 10 40" center="0 0 -2">
+                                            <shape>
+                                                <appearance>
+                                                    <material diffuseColor="0.603 0.894 0.909"></material>
+                                                </appearance>
+                                                <box></box>
+                                            </shape>
+                                        </transform>
+                                    </transform>
+                                </transform>
+                            </transform>
+
+                            <transform id="bones"></transform>
+                        </transform>
+                    </transform>
+                </transform>
+            </group>
+        </group>
+        <group render="true">
+            <group def='left'>
+                <shape>
+                    <appearance>
+                        <renderedtexture id="rtLeft" stereoMode="LEFT_EYE" update='ALWAYS' dimensions='640 800 4'
+                                         repeatS='false' repeatT='false'>
+                            <viewpoint use='vp' containerfield='viewpoint'></viewpoint>
+                            <background use='bgnd' containerfield='background'></background>
+                            <!--group USE='left' containerField="excludeNodes"></group-->
+                            <group use='theScene' containerfield="scene"></group>
+                        </renderedtexture>
+                        <composedshader>
+                            <field name='tex' type='SFInt32' value='0'></field>
+                            <shaderpart type='VERTEX'>
+                                attribute vec3 position;
+                                attribute vec2 texcoord;
+
+                                uniform mat4 modelViewProjectionMatrix;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec2 pos = sign(position.xy);
+                                fragTexCoord = texcoord;
+
+                                gl_Position = vec4((pos.x - 1.0) / 2.0, pos.y, 0.0, 1.0);
+                                }
+                            </shaderpart>
+                            <shaderpart def="frag" type='FRAGMENT'>
+                                #ifdef GL_ES
+                                precision highp float;
+                                #endif
+
+                                uniform sampler2D tex;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec3 col = texture2D(tex, fragTexCoord).rgb;
+                                gl_FragColor = vec4(col, 1.0);
+                                }
+                            </shaderpart>
+                        </composedshader>
+                    </appearance>
+                    <plane solid="false"></plane>
+                </shape>
+            </group>
+            <group def='right'>
+                <shape>
+                    <appearance>
+                        <renderedtexture id="rtRight" stereoMode="RIGHT_EYE" update='ALWAYS' dimensions='640 800 4'
+                                         repeatS='false' repeatT='false'>
+                            <viewpoint use='vp' containerfield='viewpoint'></viewpoint>
+                            <background use='bgnd' containerfield='background'></background>
+                            <group use='theScene' containerfield="scene"></group>
+                        </renderedtexture>
+                        <composedshader>
+                            <field name='tex' type='SFInt32' value='0'></field>
+                            <shaderpart type='VERTEX'>
+                                attribute vec3 position;
+                                attribute vec2 texcoord;
+
+                                uniform mat4 modelViewProjectionMatrix;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec2 pos = sign(position.xy);
+                                fragTexCoord = texcoord;
+
+                                gl_Position = vec4((pos.x + 1.0) / 2.0, pos.y, 0.0, 1.0);
+                                }
+                            </shaderpart>
+                            <shaderpart use="frag" type='FRAGMENT'></shaderpart>
+                        </composedshader>
+                    </appearance>
+                    <plane solid="false"></plane>
+                </shape>
+            </group>
+        </group>
+    </scene>
+</x3d>
+<!--Actual scene made invisible-->
+<x3d id='x3dElement2' showStat='false' showLog='false'
+     style='width:100%; height:100%; border:0; margin:0; padding:0; display: none;'>
+
+    <scene id='scene2'>
+        <viewpoint id='vpp2' def='vp2' description='ViewPoint 1' centerofrotation='3.4625 1.73998 -5.55'
+                   orientation='0 1 0 2.99229' position='4.17102 30.00905 -6.97228'
+                   znear="0.001" zfar="300"></viewpoint>
+        <viewpoint def='AOPT_CAM2' centerofrotation='3.4625 1.73998 -5.55'
+                   position='3.4625 30.73998 8.69028'></viewpoint>
+        <background DEF='bgnd' skyColor="0.5 0.5 0.5"></background>
+        <Group id="root2">
+        </Group>
+    </scene>
+</x3d>
+
+<button id="enterVR" onclick="enterVR();"></button>
+
+<script>
+    var runtime = null;
+    var rtLeft, rtRight;
+    var lastW, lastH;
+
+    var vrHMD = null, vrSensor = null;
+    var pyr = new x3dom.fields.SFVec3f(0, 0, 0);
+
+    //Callback to create plane shapes
+    var createPlaneShape = function () {
+        var shape = document.createElement('plane');
+        shape.setAttribute("size", "8, 5");
+        return shape;
+    };
+
+    function drawImages(sceneIndex, cylinderId, coneImagePositions, imagePath) {
+        for (var i = 0; i < 5; i++) {
+            provideImageTexture(sceneIndex, cylinderId, coneImagePositions[i][0], coneImagePositions[i][1], imagePath + "/" + i + ".jpg");
+        }
+    }
+
+    document.onload = function () {
+        //Generate Cylindrical Model
+        var root1 = document.getElementById("subRoot");
+        var objects = document.createElement("group");
+        objects.setAttribute("id", "Objects");
+
+        var coneImagePositions = [[0, 14], [2, 5], [3, 16], [5, 8], [4, 10]];
+        var sphereImagePositions = [[0, 16], [2, 5], [3, 16], [5, 8], [4, 10]];
+        var boxImagePositions = [[0, 14], [2, 5], [3, 14], [5, 8], [4, 10]];
+
+        objects.appendChild(genCylinder(40, createPlaneShape, "#000FFF", "1_1", "0 0 0 0"));
+        objects.appendChild(genCylinder(60, createPlaneShape, "#FF00FF", "1_2", "0 1 0 .17"));
+        objects.appendChild(genCylinder(80, createPlaneShape, "#FFFF00", "1_3", "0 1 0 .34"));
+        root1.appendChild(objects);
+        var root2 = document.getElementById("root2");
+        var objects2 = document.createElement("group");
+        objects2.setAttribute("id", "Objects2");
+
+        objects2.appendChild(genCylinder(45, createPlaneShape, "#000FFF", "2_1", "0 0 0 0"));
+        objects2.appendChild(genCylinder(65, createPlaneShape, "#FF00FF", "2_2", "0 1 0 .17"));
+        objects2.appendChild(genCylinder(85, createPlaneShape, "#FFFF00", "2_3", "0 1 0 .34"));
+
+        root2.appendChild(objects2);
+
+        drawImages(1, 1, coneImagePositions, "cylinder");
+        drawImages(1, 2, sphereImagePositions, "sphere");
+        drawImages(1, 3, boxImagePositions, "box");
+
+        drawImages(2, 1, coneImagePositions, "cylinder");
+        drawImages(2, 2, sphereImagePositions, "sphere");
+        drawImages(2, 3, boxImagePositions, "box");
+
+        runtime = document.getElementById('x3dElement').runtime;
+        rtLeft = document.getElementById('rtLeft');
+        rtRight = document.getElementById('rtRight');
+
+        lastW = +runtime.getWidth();
+        lastH = +runtime.getHeight();
+
+        var hw = Math.round(lastW / 2);
+        rtLeft.setAttribute('dimensions', hw + ' ' + lastH + ' 4');
+        rtRight.setAttribute('dimensions', hw + ' ' + lastH + ' 4');
+
+        var viewpoint = document.getElementById('vpp');
+        var viewpoint2 = document.getElementById('vpp2');
+        var initDone = false;
+
+        runtime.enterFrame = function () {
+            if (!vrSensor)
+                return;
+
+            var state = vrSensor.getState();
+
+            if (!initDone) {
+            }
+
+            if (state.orientation !== null) {
+
+                var h = state.orientation;
+                var q = new x3dom.fields.Quaternion(h.x, h.y, h.z, h.w);
+
+                var aa = q.toAxisAngle();
+                viewpoint.setAttribute("orientation", aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]);
+                viewpoint2.setAttribute("orientation", aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]);
+
+            }
+
+            if (state.position !== null) {
+
+                var posi = viewpoint.requestFieldRef('position');
+                var posi2 = viewpoint2.requestFieldRef('position');
+                posi.x = 4.17102 + (pyr.x) + state.position.x;
+                posi.y = 30.20905 + (pyr.y) + state.position.y;
+                posi.z = -6.97228 + (pyr.z * 2) + state.position.z;
+                posi2 = posi;
+                //Set hand position based on viewpoint
+                document.getElementById("handtrafo1").setAttribute("translation", posi.x + " " + posi.y + " " + posi.z);
+                document.getElementById("handtrafo1").setAttribute("rotation", aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]);
+
+                viewpoint.releaseFieldRef('position');
+                viewpoint2.releaseFieldRef('position');
+            }
+        };
+
+        runtime.exitFrame = function () {
+            var w = +runtime.getWidth() * 2;
+            var h = +runtime.getHeight() * 2;
+
+            if (w != lastW || h != lastH) {
+                var half = Math.round(w / 2);
+                rtLeft.setAttribute('dimensions', half + ' ' + h + ' 4');
+                rtRight.setAttribute('dimensions', half + ' ' + h + ' 4');
+                lastW = w;
+                lastH = h;
+            }
+
+            if (!initDone) {
+                initDone = true;
+            }
+
+            runtime.triggerRedraw();
+        };
+
+    };
+
+    function enterVR() {
+        if (vrHMD) {
+
+            var canvas = document.getElementsByTagName("canvas")[0];
+
+            if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen({vrDisplay: vrHMD});
+            } else if (canvas.mozRequestFullScreen) {
+                canvas.mozRequestFullScreen({vrDisplay: vrHMD});
+            }
+
+        }
+    }
+
+    /* ----------------------------------------------------------- */
+    function vrDeviceCallback(vrdevs) {
+        var i;
+
+        // First, find a HMD -- just use the first one we find
+        for (i = 0; i < vrdevs.length; ++i) {
+            if (vrdevs[i] instanceof HMDVRDevice) {
+                vrHMD = vrdevs[i];
+
+                break;
+            }
+        }
+
+        if (!vrHMD)
+            return;
+
+        // Then, find that HMD's position sensor
+        for (i = 0; i < vrdevs.length; ++i) {
+            if (vrdevs[i] instanceof PositionSensorVRDevice &&
+                    vrdevs[i].hardwareUnitId == vrHMD.hardwareUnitId) {
+                vrSensor = vrdevs[i];
+
+                break;
+            }
+        }
+
+        if (!vrHMD || !vrSensor) {
+            alert("Didn't find a HMD and sensor!");
+            return;
+        }
+
+        var leftEyeParams,
+                rightEyeParams,
+                leftFOV,
+                rightFOV,
+                leftTranslation,
+                rightTranslation;
+
+
+        if (vrHMD.getEyeParameters !== undefined) {
+            leftEyeParams = vrHMD.getEyeParameters("left");
+            rightEyeParams = vrHMD.getEyeParameters("right");
+            leftFOV = leftEyeParams.currentFieldOfView;
+            rightFOV = rightEyeParams.currentFieldOfView;
+            leftTranslation = leftEyeParams.eyeTranslation;
+            rightTranslation = rightEyeParams.eyeTranslation;
+        } else {
+            leftFOV = vrHMD.getCurrentEyeFieldOfView("left");
+            rightFOV = vrHMD.getCurrentEyeFieldOfView("right");
+
+            leftTranslation = vrHMD.getEyeTranslation("left");
+            rightTranslation = vrHMD.getEyeTranslation("right");
+        }
+    }
+
+    if (navigator.getVRDevices)
+        navigator.getVRDevices().then(vrDeviceCallback);
+
+    //http://blog.tojicode.com/2014/07/bringing-vr-to-chrome.html
+    //http://blog.bitops.com/blog/2014/08/20/updated-firefox-vr-builds/
+
+
+    var hand = document.getElementById("hand");
+
+
+    function init() {
+        // TODO create hand here
+
+        // bones
+        for (var i = 0; i < 5; i++) {
+            finger = document.createElement("transform");
+
+            for (var j = 0; j < 4; ++j) {
+                mtransform = document.createElement("MatrixTransform");
+                finger.appendChild(mtransform);
+
+                transform = document.createElement("transform");
+                mtransform.appendChild(transform);
+
+                transform.setAttribute("scale", "10 10 10");
+                shape = document.createElement("shape");
+                shape.setAttribute("isPickable", "false");
+                transform.appendChild(shape);
+
+                app = document.createElement("appearance");
+                mat = document.createElement("material");
+                mat.setAttribute("diffuseColor", "0.603 0.894 0.909");
+                app.appendChild(mat);
+                shape.appendChild(app);
+
+                geometry = document.createElement("box");
+                shape.appendChild(geometry);
+            }
+
+            document.getElementById("bones").appendChild(finger);
+        }
+    }
+
+    var prevShape = null;
+    var prevAppearance = null;
+
+    var parentGroupOfRay = document.getElementById("handtrafo");
+    var handtrafo1 = document.getElementById("handtrafo1");
+    var secondX3dElem = document.getElementById("x3dElement2");
+
+    var isSelected = false;
+
+    Leap.loop(function (frame) {
+        if (frame.hands.length) {
+            var hand_frame = frame.hands[0];
+            var hand = document.getElementById("hand");
+
+            var yaw = hand.children[0];
+            var pitch = yaw.children[0];
+            var roll = pitch.children[0];
+
+            yaw.setAttribute("translation", hand_frame.stabilizedPalmPosition[0] + " " + hand_frame.stabilizedPalmPosition[1] + " " + hand_frame.stabilizedPalmPosition[2]);
+
+            yaw.setAttribute("rotation", "0 1 0 " + -hand_frame.yaw());
+            pitch.setAttribute("rotation", "1 0 0 " + hand_frame.pitch());
+            roll.setAttribute("rotation", "0 0 1 " + hand_frame.roll());
+
+            var vel = hand_frame.palmVelocity;
+            var velMagn = Math.sqrt(vel[0] * vel[0], vel[1] * vel[1], vel[2] * vel[2]);
+            if (velMagn > 0.2) {
+
+                console.log("selected.......... " + isSelected);
+                hoverOver(hand_frame.palmNormal);
+
+                if (hand_frame.grabStrength > .5) {
+                    isSelected = false;
+                }
+            }
+        }
+
+        for (var i = 0; i < Math.min(frame.fingers.length, 5); i++) {
+            for (var j = 0; j < Math.min(frame.fingers[j].bones.length, 4); ++j) {
+                finger = document.getElementById("bones").children[i];
+                bone = finger.children[j];
+                finger_frame = frame.fingers[i];
+
+                m = finger_frame.bones[j].matrix();
+                arr = new Array;
+
+                for (var x = 0; x < 4; ++x)
+                    for (var y = 0; y < 4; ++y)
+                        arr.push(m[y * 4 + x]);
+
+                bone.setAttribute("matrix", arr.join(" "));
+            }
+        }
+
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+
+    var count = 0;
+    //Function for HoverOver and Selection by dwelling
+    function hoverOver(palmNormal) {
+
+        var currShape = null;
+        var minDistance = 9999999;
+        var threshold = .5;
+        var unitDistance = threshold * 10;
+        var curr = new Array(3);
+
+        var elemToRemove = document.getElementById("sub_parent_of_ray");
+        if (elemToRemove !== null) {
+            parentGroupOfRay.removeChild(elemToRemove);
+        }
+
+        var subParentOfRays = document.createElement("group");
+        subParentOfRays.setAttribute("id", "sub_parent_of_ray");
+
+        var translation = handtrafo1.getAttribute("translation").split(" ");
+        translation[0] = parseInt(translation[0]);
+        translation[1] = parseInt(translation[1]);
+        translation[2] = parseInt(translation[2]);
+
+        var rotation = handtrafo1.getAttribute("rotation");
+
+        var rotationInMatrix = x3dom.fields.Quaternion.parseAxisAngle(rotation).toMatrix();
+
+        var direction_x = unitDistance * palmNormal[0];
+        var direction_y = unitDistance * palmNormal[1];
+        var direction_z = unitDistance * palmNormal[2];
+
+        for (var k = 0; k <= 30; k++) {
+
+            var currRay_x = (k * direction_x);
+            var currRay_y = (k * direction_y);
+            var currRay_z = (k * direction_z);
+
+            curr[0] = currRay_x + 0.1;
+            curr[1] = currRay_y - 0.3;
+            curr[2] = currRay_z - 0.5;
+
+            var afterReverseRotation = rotationInMatrix.multMatrixVec(new x3dom.fields.SFVec3f(curr[0], curr[1], curr[2]));
+            curr[0] = translation[0] + afterReverseRotation.x;
+            curr[1] = translation[1] + afterReverseRotation.y;
+            curr[2] = translation[2] + afterReverseRotation.z;
+            var rayShape;
+            //Generate yellow and white spheres representing start and end of ray
+            if (k == 0) {
+                rayShape = genShape2(currRay_x, currRay_y, currRay_z, .1, "#FFF000", "" + k);
+            } else {
+                rayShape = genShape2(currRay_x, currRay_y, currRay_z, .2 * k, "#FFFFFF", "" + k);
+            }
+
+            subParentOfRays.appendChild(rayShape);
+
+            var xyCoordinates = secondX3dElem.runtime.calcCanvasPos(curr[0], curr[1], curr[2]);
+            info = secondX3dElem.runtime.shootRay(xyCoordinates[0], xyCoordinates[1]);
+            if (info.pickObject !== null) {
+                var shapePosition = info.pickObject.parentNode.getAttribute("translation").split(" ");
+                var currDistance = calcDistance(curr, shapePosition);
+                if (currDistance < minDistance) {
+                    currShape = info.pickObject;
+                    minDistance = currDistance;
+                    if (currDistance < threshold) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        parentGroupOfRay.appendChild(subParentOfRays);
+
+        if (currShape !== null && !isSelected) {
+            var id = currShape.getAttribute("id");
+            var shape = document.getElementById(id.replace("2", "1"));
+            var old = shape.getElementsByTagName("appearance")[0];
+            var appearance = document.createElement("appearance");
+            var mat = document.createElement("material");
+            mat.setAttribute("diffuseColor", "#FFFFFF");
+            appearance.appendChild(mat);
+            if (prevShape == null) {
+                shape.replaceChild(appearance, old);
+                prevShape = shape;
+                prevAppearance = old;
+            }
+            //Reset color if hand hovers over a different plane
+            if (prevShape !== null && (prevShape.getAttribute("id") !== shape.getAttribute("id"))) {
+                count = 0;
+                var currAppearance = prevShape.getElementsByTagName("appearance")[0];
+                prevShape.replaceChild(prevAppearance, currAppearance);
+                shape.replaceChild(appearance, old);
+                prevShape = shape;
+                prevAppearance = old;
+            }
+
+            if (prevShape !== null && (prevShape.getAttribute("id") == shape.getAttribute("id"))) {
+                count = count + 1;
+                console.log("timeeeeeeeeeeee........." + count);
+                if(count > 5) {
+                    isSelected = true;
+                }
+                console.log("is selected................" + isSelected);
+            }
+        } else if (isSelected && prevShape !== null) {
+//            console.log("is selected................");
+            var currAppearance = prevShape.getElementsByTagName("appearance")[0];
+            var appearance = document.createElement("appearance");
+            var mat = document.createElement("material");
+            mat.setAttribute("diffuseColor", "#FF3366");
+            appearance.appendChild(mat);
+            prevShape.replaceChild(appearance, currAppearance);
+        }
+
+    }
+
+    function calcDistance(v1, v2) {
+        var dx = v1[0] - v2[0];
+        var dy = v1[1] - v2[1];
+        var dz = v1[2] - v2[2];
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    function genCylinder(radius, createShapeCallBack, color, idPrefix, rotation) {
+
+        var cylinder = document.createElement("group");
+        cylinder.setAttribute("id", idPrefix + "_cylinder");
+
+        y = 0;
+        for (var j = 0; j < 6; j++) {
+
+            cylinder.appendChild(genCirclesWithShapes(radius, y, createShapeCallBack, color, idPrefix + "_" + j, rotation));
+            y = 10 * j;
+        }
+
+        return cylinder;
+    }
+
+    function genCirclesWithShapes(radius, y, createShapeCallBack, color, idPrefix, rotation) {
+
+        var numberOfShapes = 20;
+        var angleDelta = (2 * 3.1416) / numberOfShapes;
+        var angle = angleDelta;
+
+        var transform = document.createElement("transform");
+        var circle = document.createElement("group");
+        transform.setAttribute("id", idPrefix + "_circle");
+        transform.setAttribute("translation", "0 " + y + " 0");
+        transform.setAttribute("rotation", rotation);
+        transform.appendChild(circle);
+
+        for (var i = 0; i < numberOfShapes; i++) {
+            var x;
+            var z;
+
+            if (i == 0) {
+                x = radius;
+                z = 0;
+                circle.appendChild(genShape(x, 0, z, createShapeCallBack, color, idPrefix + "_" + i, angle + 3.14/2));
+            } else {
+                x = radius * Math.cos(angle);
+                z = radius * Math.sin(angle);
+                circle.appendChild(genShape(x, 0, z, createShapeCallBack, color, idPrefix + "_" + i, angle + 3.14/2))
+            }
+
+            angle = angle + angleDelta;
+        }
+
+        return transform;
+    }
+
+    function genShape(x, y, z, createShapeCallBack, color, idPrefix, angle) {
+
+        var transform = document.createElement('transform');
+        transform.setAttribute("translation", x + " " + y + " " + z);
+        transform.setAttribute("id", idPrefix + "_transform");
+        transform.setAttribute("rotation", "0 1 0 -" + angle);
+        var shape = document.createElement('shape');
+        shape.setAttribute("id", idPrefix + "_shape");
+        var appearance = document.createElement("appearance");
+        var mat = document.createElement("material");
+        mat.setAttribute("diffuseColor", color);
+
+        appearance.appendChild(mat);
+        shape.appendChild(appearance);
+        shape.appendChild(createShapeCallBack());
+        transform.appendChild(shape);
+
+        return transform;
+    }
+
+    function genShape2(x, y, z, radius, color, idPrefix) {
+
+        var transform = document.createElement('transform');
+        transform.setAttribute("translation", x + " " + y + " " + z);
+        transform.setAttribute("id", idPrefix + "_transform");
+        var shape = document.createElement('shape');
+        shape.setAttribute("id", idPrefix + "_shape");
+        shape.setAttribute("isPickable", "false");
+        var appearance = document.createElement("appearance");
+        var mat = document.createElement("material");
+        mat.setAttribute("diffuseColor", color);
+        mat.setAttribute("transparency", "0.7");
+
+        appearance.appendChild(mat);
+        shape.appendChild(appearance);
+        shape.appendChild(createSphereShape2(radius));
+        transform.appendChild(shape);
+
+        return transform;
+    }
+
+    var createSphereShape2 = function (radius) {
+        var shape = document.createElement('sphere');
+        shape.setAttribute("radius", radius);
+        return shape;
+    };
+    //Funtion to draw emoticons as textures
+    function provideImageTexture(sceneIndex, cylinderIndex, circleIndex, shapeIndex, imagePath) {
+        var shapeId = sceneIndex + "_" + cylinderIndex + "_" + circleIndex + "_" + shapeIndex + "_shape";
+        var shape = document.getElementById(shapeId);
+        var currAppearance = shape.getElementsByTagName("appearance")[0];
+        var appearance = document.createElement("appearance");
+        var texture = document.createElement("ImageTexture");
+        texture.setAttribute("url", imagePath);
+        appearance.appendChild(texture);
+        shape.replaceChild(appearance, currAppearance);
+    }
+
+</script>
+</body>
+</html>
